@@ -2,7 +2,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import './SearchBox.css';
 import { useState } from 'react';
-import { use } from 'react';
+
 
 
 export default function SearchBox ({UpdateInfo}){
@@ -14,9 +14,11 @@ export default function SearchBox ({UpdateInfo}){
 
 let infoWeather = async () =>{
     try{
-let response = await fetch(`${API_URL}?q= ${city}&appid=${API_KEY}&units=metric`);
+   setError(false);
+let response = await fetch(`${API_URL}?q=${city}&appid=${API_KEY}&units=metric`);
 let jsonresponse = await response.json();
 console.log(jsonresponse);
+if (jsonresponse.cod === "404" || jsonresponse.cod === 404) { setError(true); return null; }
 
 let result ={
     city: city,
@@ -28,6 +30,7 @@ let result ={
     weather: jsonresponse.weather[0].description,
 }
 console.log(result);
+setError(false);
 return result;
     }catch(err){
         throw err;
@@ -36,20 +39,24 @@ return result;
 
 let handleChange = (event) =>{
     setcity(event.target.value);
+    setError(false);
 
-}
-let handleSubmit = async (event) =>{
-    try{
-    event.preventDefault()
-    console.log(city);
-    setcity("");
-    
-let NewInfo  = await infoWeather();
-UpdateInfo(NewInfo);
-} catch(err){
-       setError(true);
-    }
-}
+};
+ let handleSubmit = async (event) => {
+        try {
+            event.preventDefault();
+            console.log(city);
+
+            let NewInfo = await infoWeather();
+            if (NewInfo) {
+                UpdateInfo(NewInfo);
+                setcity(""); // ✅ clear input after success
+            }
+        } catch (err) {
+            setError(true);
+        }
+    };
+
 
     return(
         <div className='SearchBox'>
